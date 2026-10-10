@@ -10,11 +10,7 @@ function errorResponse(status: number, code: string, message: string, retryable:
     { status, headers: { "Cache-Control": "no-store" } },
   );
 }
-
-function originIsAllowed(request: Request): boolean {
-  const origin = request.headers.get("origin");
-  return !origin || origin === new URL(request.url).origin;
-}
+import { originIsAllowed } from "@/lib/server/origin";
 
 async function readBoundedBody(request: Request, maxBytes: number): Promise<Uint8Array> {
   if (!request.body) throw new Error("empty");

@@ -32,10 +32,7 @@ async function readBody(request: Request): Promise<string> {
   return value + decoder.decode();
 }
 
-function originIsAllowed(request: Request): boolean {
-  const origin = request.headers.get("origin");
-  return !origin || origin === new URL(request.url).origin;
-}
+import { originIsAllowed } from "@/lib/server/origin";
 
 export async function POST(request: Request) {
   if (!originIsAllowed(request)) return errorResponse(403, "ORIGIN_REJECTED", "This request origin is not allowed.", false);
