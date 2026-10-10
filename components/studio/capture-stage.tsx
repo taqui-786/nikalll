@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Shdr23 } from "@/components/ui/shdr-23";
 import type { OrbState } from "@/components/ui/orbkit-core";
-import { AudioWave } from "@/components/studio/audio-wave";
+import { LiveWaveform } from "@/components/studio/live-waveform";
 import { BuildList } from "@/components/studio/build-list";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Delete02Icon, KeyboardIcon, Tap01Icon } from "@hugeicons/core-free-icons";
@@ -97,7 +97,7 @@ export function CaptureStage({
   const pill = recording
     ? "Tap and hold while you talk"
     : hearing
-      ? "Hearing"
+      ? "Processing..."
       : building
         ? "Building"
         : holdHint
@@ -112,24 +112,70 @@ export function CaptureStage({
             {building ? (
               <motion.div
                 key="building"
-                className="w-full"
+                className="flex w-full flex-col items-center justify-center gap-4"
                 initial={reduce ? { opacity: 0 } : { opacity: 0, y: 18, filter: "blur(6px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 exit={reduce ? { opacity: 0 } : { opacity: 0, y: -10, filter: "blur(4px)" }}
                 transition={{ duration: reduce ? 0.12 : 0.45, ease: EASE }}
               >
+                <div className="flex h-16 w-full max-w-sm items-center justify-center">
+                  <LiveWaveform
+                    active={false}
+                    processing={true}
+                    mode="static"
+                    barWidth={3}
+                    barGap={2}
+                    height={56}
+                    barColor="currentColor"
+                    className="text-primary"
+                  />
+                </div>
                 <BuildList />
+              </motion.div>
+            ) : hearing ? (
+              <motion.div
+                key="hearing"
+                className="flex w-full flex-col items-center justify-center gap-3"
+                initial={reduce ? { opacity: 0 } : { opacity: 0, y: 12, filter: "blur(4px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.28, ease: EASE }}
+              >
+                <div className="flex h-16 w-full max-w-sm items-center justify-center">
+                  <LiveWaveform
+                    active={false}
+                    processing={true}
+                    mode="static"
+                    barWidth={3}
+                    barGap={2}
+                    height={56}
+                    barColor="currentColor"
+                    className="text-primary"
+                  />
+                </div>
+                <p className="animate-pulse text-sm font-medium text-muted-foreground">Hearing voice note...</p>
               </motion.div>
             ) : recording ? (
               <motion.div
                 key="wave"
-                className="flex w-full justify-center"
+                className="flex w-full max-w-md justify-center px-4"
                 initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8, filter: "blur(4px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.28, ease: EASE }}
               >
-                <AudioWave analyser={analyser} active onLevel={onLevel} />
+                <LiveWaveform
+                  analyser={analyser}
+                  active={true}
+                  processing={false}
+                  mode="static"
+                  onLevel={onLevel}
+                  barWidth={3}
+                  barGap={2}
+                  height={64}
+                  barColor="currentColor"
+                  className="text-primary"
+                />
               </motion.div>
             ) : (
               <motion.div
@@ -149,11 +195,6 @@ export function CaptureStage({
               </motion.div>
             )}
           </AnimatePresence>
-          {!recording && (
-            <div className="sr-only">
-              <AudioWave analyser={analyser} active={false} onLevel={onLevel} />
-            </div>
-          )}
         </div>
 
         <AnimatePresence>
