@@ -117,8 +117,8 @@ export function ReviewBoard({
                       </button>
                     </div>
 
-                    <div className="mt-2 flex flex-wrap items-center gap-1.5 pl-6">
-                      <div className="inline-flex h-9 items-center overflow-hidden rounded-full bg-muted">
+                    <div className="mt-2.5 flex flex-wrap items-center gap-2 pl-6">
+                      <div className="inline-flex h-8 items-stretch rounded-full bg-muted/80 p-0.5 ring-1 ring-border/50">
                         {DISPOSITIONS.map((item) => {
                           const selected = task.disposition === item.id;
                           return (
@@ -127,10 +127,11 @@ export function ReviewBoard({
                               type="button"
                               aria-pressed={selected}
                               onClick={() => onUpdate(task.id, { disposition: item.id })}
-                              className={`px-2.5 text-[10px] font-semibold tracking-wider uppercase transition-colors duration-150 ${
-                                selected ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                              className={`flex items-center justify-center rounded-full px-3 text-[11px] font-semibold tracking-wider uppercase transition-all duration-150 select-none cursor-pointer ${
+                                selected
+                                  ? "bg-foreground text-background shadow-xs font-bold"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-background/40 active:scale-95"
                               }`}
-                              style={{ transitionProperty: "background-color, color" }}
                             >
                               {item.label}
                             </button>
@@ -138,8 +139,12 @@ export function ReviewBoard({
                         })}
                       </div>
 
-                      {task.disposition === "included" && (
-                        <div className={`inline-flex h-9 items-center overflow-hidden rounded-full ring-1 ${needsStop ? "ring-primary" : "ring-border"}`}>
+                      {task.disposition === "included" ? (
+                        <div
+                          className={`inline-flex h-8 items-stretch rounded-full p-0.5 transition-all duration-150 ring-1 ${
+                            needsStop ? "bg-primary/15 ring-primary" : "bg-muted/80 ring-border/50"
+                          }`}
+                        >
                           {destinations.map((destination) => {
                             const selected = task.destinationId === destination.id;
                             return (
@@ -148,17 +153,26 @@ export function ReviewBoard({
                                 type="button"
                                 aria-pressed={selected}
                                 aria-label={destination.name}
-                                onClick={() => onUpdate(task.id, { destinationId: destination.id })}
-                                className={`px-2.5 text-[10px] font-semibold tracking-wide transition-colors duration-150 ${
-                                  selected ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                                onClick={() =>
+                                  onUpdate(task.id, {
+                                    destinationId: selected ? null : destination.id,
+                                  })
+                                }
+                                className={`flex items-center justify-center rounded-full px-3 text-[11px] font-semibold tracking-wide transition-all duration-150 select-none cursor-pointer ${
+                                  selected
+                                    ? "bg-primary text-primary-foreground shadow-xs font-bold"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-background/40 active:scale-95"
                                 }`}
-                                style={{ transitionProperty: "background-color, color" }}
                               >
                                 {shortStop(destination.name)}
                               </button>
                             );
                           })}
                         </div>
+                      ) : (
+                        <span className="inline-flex h-8 items-center px-2 text-[11px] font-medium text-muted-foreground/60 italic">
+                          No stop needed
+                        </span>
                       )}
                     </div>
                   </div>

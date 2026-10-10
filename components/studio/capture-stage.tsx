@@ -120,8 +120,8 @@ export function CaptureStage({
           : "Tap to speak";
 
   return (
-    <div className="flex h-full min-h-0 flex-col justify-between px-1 pt-8 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pt-12">
-      <div className="flex flex-col items-center">
+    <div className="flex h-full min-h-0 flex-col justify-between px-1 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:py-6">
+      <div className="my-auto flex flex-col items-center justify-center">
         <div className="relative flex min-h-36 w-full items-center justify-center">
           <AnimatePresence mode="wait">
             {building ? (

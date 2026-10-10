@@ -33,19 +33,19 @@ const DESTINATIONS: Destination[] = [
     id: "local-grocery",
     name: "Local Grocery",
     detail: "Daily essentials · fictional sample",
-    aliases: ["milk", "bread", "doodh", "dudh", "grocery", "ration", "sabzi", "kirana", "shop", "butter", "eggs", "curd", "dahi"],
+    aliases: ["milk", "bread", "doodh", "dudh", "grocery", "ration", "sabzi", "kirana", "butter", "eggs", "curd", "dahi", "paneer"],
   },
   {
     id: "post-office",
     name: "Post Office",
     detail: "Parcel counter · fictional sample",
-    aliases: ["parcel", "dak ghar", "dakghar", "post", "courier", "speed post", "letter", "stamp", "package"],
+    aliases: ["parcel", "dak ghar", "dakghar", "post office", "speed post", "courier", "post", "letter", "stamp", "package"],
   },
   {
     id: "stationery-corner",
     name: "Stationery Corner",
     detail: "Books and school supplies · fictional sample",
-    aliases: ["notebook", "pen", "stationery", "pencil", "book", "copy", "kitab", "kitāb", "paper", "print"],
+    aliases: ["stationery", "stationery shop", "notebook", "pen", "pencil", "drawing copies", "drawing", "book", "copy", "kitab", "kitāb", "paper", "print"],
   },
 ];
 
@@ -58,9 +58,17 @@ function createId() {
 
 function inferDestination(hint: string | null | undefined, label: string): (typeof DESTINATION_IDS)[number] | null {
   const query = `${hint ?? ""} ${label}`.toLowerCase();
+  const allAliases: { destId: (typeof DESTINATION_IDS)[number]; alias: string }[] = [];
   for (const dest of DESTINATIONS) {
-    if (dest.aliases.some((alias) => query.includes(alias.toLowerCase()))) {
-      return dest.id;
+    for (const alias of dest.aliases) {
+      allAliases.push({ destId: dest.id, alias });
+    }
+  }
+  allAliases.sort((a, b) => b.alias.length - a.alias.length);
+
+  for (const { destId, alias } of allAliases) {
+    if (query.includes(alias.toLowerCase())) {
+      return destId;
     }
   }
   return null;

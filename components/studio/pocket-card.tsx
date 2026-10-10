@@ -3,6 +3,8 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import type { Outcome, Task } from "@/lib/domain/manual-workspace";
+import { ClipboardListIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 const CYCLE: Outcome[] = ["pending", "done", "unavailable", "deferred"];
 
@@ -57,14 +59,17 @@ export function PocketCardView({
       </div>
 
       <article className="bg-card px-5 pt-5 pb-4 shadow-[0_0_0_1px_oklch(0_0_0/0.06),0_18px_36px_-28px_oklch(0.2_0.02_90/0.7)] print:shadow-none sm:px-7">
-        <header className="flex items-end justify-between gap-4">
-          <div>
-            <p className="font-mono text-[10px] tracking-[0.22em] text-muted-foreground uppercase">Walk</p>
-            <p className="font-heading text-[2rem] leading-none font-extrabold tracking-[-0.05em] text-foreground tabular-nums">
-              {left} left
-            </p>
+        <header className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <HugeiconsIcon className="text-muted-foreground shrink-0" icon={ClipboardListIcon} size={40} />
+            <div>
+              <p className="font-mono text-[10px] tracking-[0.22em] text-muted-foreground uppercase">Walk</p>
+              <p className="font-heading text-[2rem] leading-none font-extrabold tracking-[-0.05em] text-foreground tabular-nums">
+                {left} left
+              </p>
+            </div>
           </div>
-          <p className="pb-1 font-mono text-[11px] text-muted-foreground tabular-nums">
+          <p className="font-mono text-[11px] text-muted-foreground tabular-nums">
             {String(stops.length).padStart(2, "0")} stops
           </p>
         </header>
