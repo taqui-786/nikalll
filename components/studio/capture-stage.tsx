@@ -112,23 +112,18 @@ export function CaptureStage({
             {building ? (
               <motion.div
                 key="building"
-                className="flex w-full flex-col items-center justify-center gap-4"
+                className="flex w-full flex-col items-center justify-center gap-3.5"
                 initial={reduce ? { opacity: 0 } : { opacity: 0, y: 18, filter: "blur(6px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 exit={reduce ? { opacity: 0 } : { opacity: 0, y: -10, filter: "blur(4px)" }}
                 transition={{ duration: reduce ? 0.12 : 0.45, ease: EASE }}
               >
-                <div className="flex h-16 w-full max-w-sm items-center justify-center">
-                  <LiveWaveform
-                    active={false}
-                    processing={true}
-                    mode="static"
-                    barWidth={3}
-                    barGap={2}
-                    height={56}
-                    barColor="currentColor"
-                    className="text-primary"
-                  />
+                <div className="flex flex-col items-center gap-1.5">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3.5 py-1 text-xs font-semibold text-primary ring-1 ring-primary/20">
+                    <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+                    Structuring errands
+                  </div>
+                  <p className="text-xs text-muted-foreground">Extracting items and shops...</p>
                 </div>
                 <BuildList />
               </motion.div>

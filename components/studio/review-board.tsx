@@ -1,13 +1,14 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { DESTINATION_IDS, type Disposition, type Task } from "@/lib/domain/manual-workspace";
+import type { Disposition, Task } from "@/lib/domain/manual-workspace";
 
 const EASE = [0.32, 0.72, 0, 1] as const;
 
 type Destination = {
-  id: (typeof DESTINATION_IDS)[number];
+  id: string;
   name: string;
 };
 
@@ -17,16 +18,11 @@ const DISPOSITIONS: { id: Disposition; label: string }[] = [
   { id: "deferred", label: "Later" },
 ];
 
-function shortStop(name: string) {
-  return name.replace(/^Local\s+/i, "").replace(/\s+(Office|Corner)$/i, "");
-}
-
 export function ReviewBoard({
   tasks,
   lastSource,
   destinations,
   sourceReviewed,
-  missingDestinationCount,
   canPrepare,
   onBack,
   onAdd,
@@ -34,12 +30,12 @@ export function ReviewBoard({
   onRemove,
   onReviewed,
   onPrepare,
+  onAddDestination,
 }: {
   tasks: Task[];
   lastSource: string;
   destinations: Destination[];
   sourceReviewed: boolean;
-  missingDestinationCount: number;
   canPrepare: boolean;
   onBack: () => void;
   onAdd: () => void;
@@ -47,8 +43,27 @@ export function ReviewBoard({
   onRemove: (id: string) => void;
   onReviewed: (checked: boolean) => void;
   onPrepare: () => void;
+  onAddDestination?: (name: string) => void;
 }) {
   const reduce = useReducedMotion();
+  const [customStopFor, setCustomStopFor] = useState<string | null>(null);
+  const [customStopText, setCustomStopText] = useState("");
+
+  const allDestinations = useMemo(() => {
+    const map = new Map<string, Destination>();
+    for (const d of destinations) {
+      map.set(d.name.toLowerCase(), d);
+    }
+    for (const t of tasks) {
+      if (t.destinationId && t.destinationId.trim()) {
+        const key = t.destinationId.trim().toLowerCase();
+        if (!map.has(key)) {
+          map.set(key, { id: t.destinationId.trim(), name: t.destinationId.trim() });
+        }
+      }
+    }
+    return Array.from(map.values());
+  }, [destinations, tasks]);
 
   return (
     <div>
@@ -140,34 +155,85 @@ export function ReviewBoard({
                       </div>
 
                       {task.disposition === "included" ? (
-                        <div
-                          className={`inline-flex h-8 items-stretch rounded-full p-0.5 transition-all duration-150 ring-1 ${
-                            needsStop ? "bg-primary/15 ring-primary" : "bg-muted/80 ring-border/50"
-                          }`}
-                        >
-                          {destinations.map((destination) => {
-                            const selected = task.destinationId === destination.id;
-                            return (
-                              <button
-                                key={destination.id}
-                                type="button"
-                                aria-pressed={selected}
-                                aria-label={destination.name}
-                                onClick={() =>
-                                  onUpdate(task.id, {
-                                    destinationId: selected ? null : destination.id,
-                                  })
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {allDestinations.length > 0 && (
+                            <div className="inline-flex h-8 items-stretch rounded-full bg-muted/80 p-0.5 ring-1 ring-border/50">
+                              {allDestinations.map((destination) => {
+                                const selected = task.destinationId === destination.id || task.destinationId === destination.name;
+                                return (
+                                  <button
+                                    key={destination.id}
+                                    type="button"
+                                    aria-pressed={selected}
+                                    aria-label={destination.name}
+                                    onClick={() =>
+                                      onUpdate(task.id, {
+                                        destinationId: selected ? null : destination.name,
+                                      })
+                                    }
+                                    className={`flex items-center justify-center rounded-full px-3 text-[11px] font-semibold tracking-wide transition-all duration-150 select-none cursor-pointer ${
+                                      selected
+                                        ? "bg-primary text-primary-foreground shadow-xs font-bold"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-background/40 active:scale-95"
+                                    }`}
+                                  >
+                                    {destination.name}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                          {customStopFor === task.id ? (
+                            <form
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                const trimmed = customStopText.trim();
+                                if (trimmed) {
+                                  onAddDestination?.(trimmed);
+                                  onUpdate(task.id, { destinationId: trimmed });
                                 }
-                                className={`flex items-center justify-center rounded-full px-3 text-[11px] font-semibold tracking-wide transition-all duration-150 select-none cursor-pointer ${
-                                  selected
-                                    ? "bg-primary text-primary-foreground shadow-xs font-bold"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-background/40 active:scale-95"
-                                }`}
+                                setCustomStopFor(null);
+                                setCustomStopText("");
+                              }}
+                              className="inline-flex h-8 items-center gap-1.5 rounded-full bg-muted px-2.5 py-0.5 ring-1 ring-primary"
+                            >
+                              <input
+                                type="text"
+                                autoFocus
+                                placeholder="Stop name..."
+                                value={customStopText}
+                                onChange={(e) => setCustomStopText(e.target.value)}
+                                className="w-24 bg-transparent text-[11px] font-semibold text-foreground outline-none placeholder:text-muted-foreground/60"
+                              />
+                              <button
+                                type="submit"
+                                aria-label="Save custom stop"
+                                className="cursor-pointer text-xs font-bold text-primary hover:opacity-80"
                               >
-                                {shortStop(destination.name)}
+                                ✓
                               </button>
-                            );
-                          })}
+                              <button
+                                type="button"
+                                aria-label="Cancel custom stop"
+                                onClick={() => setCustomStopFor(null)}
+                                className="cursor-pointer text-xs text-muted-foreground hover:text-foreground"
+                              >
+                                ✕
+                              </button>
+                            </form>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCustomStopFor(task.id);
+                                setCustomStopText("");
+                              }}
+                              className="inline-flex h-8 items-center justify-center rounded-full bg-muted/60 px-2.5 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground ring-1 ring-border/40 cursor-pointer transition-all duration-150 active:scale-95"
+                            >
+                              + Stop
+                            </button>
+                          )}
                         </div>
                       ) : (
                         <span className="inline-flex h-8 items-center px-2 text-[11px] font-medium text-muted-foreground/60 italic">
@@ -198,16 +264,9 @@ export function ReviewBoard({
         <Button type="button" variant="ghost" onClick={onBack}>
           Back
         </Button>
-        <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
-          {missingDestinationCount > 0 && (
-            <span className="text-center text-xs font-semibold text-primary-foreground tabular-nums">
-              {missingDestinationCount} need a stop
-            </span>
-          )}
-          <Button type="button" size="lg" onClick={onPrepare} disabled={!canPrepare}>
-            Pocket card
-          </Button>
-        </div>
+        <Button type="button" size="lg" onClick={onPrepare} disabled={!canPrepare}>
+          Pocket card
+        </Button>
       </div>
     </div>
   );

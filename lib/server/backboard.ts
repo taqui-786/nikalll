@@ -15,7 +15,7 @@ Allowed enum values:
 - disposition: "include" | "cancel" | "clarify" (items to skip, avoid, or cancel MUST be "cancel")
 - quantity: { "value": number, "unit": string } or null
 - displayLabel: short task label in the source language (max 160 characters, required)
-- destinationHint: shop or location mention from source text, or null
+- destinationHint: exact name of the shop, market, store, or place mentioned in the text for this errand (e.g. "Chemist", "Sabzi Mandi", "Kirana Store", "Stationery", "Post Office"), or null if no place is mentioned
 - evidenceQuotes: array of exact, contiguous, verbatim substrings copied directly from the source text. NEVER use ellipses ("..."), never edit words.`;
 
 function withTimeout(signal?: AbortSignal): { signal: AbortSignal; cancel: () => void } {

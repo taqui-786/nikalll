@@ -9,7 +9,6 @@ import type { OrbState } from "@/components/ui/orbkit-core";
 import {
   STORAGE_KEY,
   STORAGE_VERSION,
-  DESTINATION_IDS,
   ManualTaskSchema,
   ManualWorkspaceSchema,
   canPrepareManualCard,
@@ -21,32 +20,9 @@ import {
 } from "@/lib/domain/manual-workspace";
 
 type Destination = {
-  id: (typeof DESTINATION_IDS)[number];
+  id: string;
   name: string;
-  detail: string;
-  aliases: string[];
 };
-
-const DESTINATIONS: Destination[] = [
-  {
-    id: "local-grocery",
-    name: "Local Grocery",
-    detail: "Daily essentials · fictional sample",
-    aliases: ["milk", "bread", "doodh", "dudh", "grocery", "ration", "sabzi", "kirana", "butter", "eggs", "curd", "dahi", "paneer"],
-  },
-  {
-    id: "post-office",
-    name: "Post Office",
-    detail: "Parcel counter · fictional sample",
-    aliases: ["parcel", "dak ghar", "dakghar", "post office", "speed post", "courier", "post", "letter", "stamp", "package"],
-  },
-  {
-    id: "stationery-corner",
-    name: "Stationery Corner",
-    detail: "Books and school supplies · fictional sample",
-    aliases: ["stationery", "stationery shop", "notebook", "pen", "pencil", "drawing copies", "drawing", "book", "copy", "kitab", "kitāb", "paper", "print"],
-  },
-];
 
 const SAMPLE_SOURCE =
   "Doodh 1 litre le aana. Bread mat lana, already hai. Parcel post office pe chhod dena. Stationery se notebook lena.";
@@ -55,35 +31,29 @@ function createId() {
   return crypto.randomUUID();
 }
 
-function inferDestination(hint: string | null | undefined, label: string): (typeof DESTINATION_IDS)[number] | null {
-  const query = `${hint ?? ""} ${label}`.toLowerCase();
-  const allAliases: { destId: (typeof DESTINATION_IDS)[number]; alias: string }[] = [];
-  for (const dest of DESTINATIONS) {
-    for (const alias of dest.aliases) {
-      allAliases.push({ destId: dest.id, alias });
-    }
-  }
-  allAliases.sort((a, b) => b.alias.length - a.alias.length);
-
-  for (const { destId, alias } of allAliases) {
-    if (query.includes(alias.toLowerCase())) {
-      return destId;
-    }
-  }
-  return null;
-}
-
 export default function Home() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [sourceText, setSourceText] = useState("");
   const [lastSource, setLastSource] = useState("");
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [destinations, setDestinations] = useState<Destination[]>([]);
   const [sourceReviewed, setSourceReviewed] = useState(false);
   const [cardTasks, setCardTasks] = useState<Task[] | null>(null);
   const [message, setMessage] = useState("");
   const [hydrated, setHydrated] = useState(false);
   const [storageBlocked, setStorageBlocked] = useState(false);
   const [storageStatus, setStorageStatus] = useState("Loading…");
+
+  const addDestination = useCallback((name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setDestinations((prev) => {
+      if (prev.some((d) => d.name.toLowerCase() === trimmed.toLowerCase())) {
+        return prev;
+      }
+      return [...prev, { id: trimmed, name: trimmed }];
+    });
+  }, []);
 
   // AI & Voice state
   const [isExtracting, setIsExtracting] = useState(false);
@@ -117,6 +87,20 @@ export default function Home() {
         setTasks(persisted.tasks);
         setSourceReviewed(persisted.sourceReviewed);
         setCardTasks(persisted.cardTasks);
+
+        const knownStops = new Set<string>();
+        const loadedDestinations: Destination[] = [];
+        const allLoadedTasks = [...persisted.tasks, ...(persisted.cardTasks ?? [])];
+        for (const t of allLoadedTasks) {
+          if (t.destinationId && t.destinationId.trim()) {
+            const key = t.destinationId.trim().toLowerCase();
+            if (!knownStops.has(key)) {
+              knownStops.add(key);
+              loadedDestinations.push({ id: t.destinationId.trim(), name: t.destinationId.trim() });
+            }
+          }
+        }
+        setDestinations(loadedDestinations);
 
         if (persisted.cardTasks && persisted.cardTasks.length > 0) {
           setStep(3);
@@ -205,18 +189,55 @@ export default function Home() {
     };
   }, []);
 
-  const includedTasks = useMemo(() => tasks.filter((task) => task.disposition === "included"), [tasks]);
-  const missingDestinationCount = includedTasks.filter((task) => !task.destinationId).length;
   const canPrepare = canPrepareManualCard(tasks, sourceReviewed);
 
   const cardStops = useMemo(() => {
     if (!cardTasks) return [];
-    return DESTINATIONS.map((destination) => ({
-      destination,
-      tasks: cardTasks.filter(
-        (task) => task.disposition === "included" && task.destinationId === destination.id,
-      ),
-    })).filter((stop) => stop.tasks.length > 0);
+    const includedTasks = cardTasks.filter((task) => task.disposition === "included");
+    const groups = new Map<string, Task[]>();
+    const unassignedTasks: Task[] = [];
+
+    for (const task of includedTasks) {
+      if (task.destinationId && task.destinationId.trim()) {
+        const destName = task.destinationId.trim();
+        const existing = groups.get(destName);
+        if (existing) {
+          existing.push(task);
+        } else {
+          groups.set(destName, [task]);
+        }
+      } else {
+        unassignedTasks.push(task);
+      }
+    }
+
+    const stops: {
+      destination: { id: string; name: string; detail?: string };
+      tasks: Task[];
+    }[] = [];
+
+    for (const [name, tasks] of groups.entries()) {
+      stops.push({
+        destination: {
+          id: name,
+          name,
+        },
+        tasks,
+      });
+    }
+
+    if (unassignedTasks.length > 0) {
+      stops.push({
+        destination: {
+          id: "other-errands",
+          name: "Other Errands",
+          detail: "Errands along the way",
+        },
+        tasks: unassignedTasks,
+      });
+    }
+
+    return stops;
   }, [cardTasks]);
 
   function detachMeter() {
@@ -377,18 +398,24 @@ export default function Home() {
           disposition: "include" | "cancel" | "clarify";
           destinationHint: string | null;
         }
+        const extractedDestinations = new Map<string, Destination>();
         const parsedTasks: Task[] = data.draft.items.map((item: DraftItem) => {
           const labelWithQty = item.quantity
             ? `${item.displayLabel} (${item.quantity.value} ${item.quantity.unit})`
             : item.displayLabel;
+          const destination = item.destinationHint?.trim() || null;
+          if (destination && !extractedDestinations.has(destination.toLowerCase())) {
+            extractedDestinations.set(destination.toLowerCase(), { id: destination, name: destination });
+          }
           return {
             id: createId(),
             label: labelWithQty.slice(0, 160),
-            destinationId: inferDestination(item.destinationHint, labelWithQty),
+            destinationId: destination,
             disposition: item.disposition === "cancel" ? ("cancelled" as const) : item.disposition === "clarify" ? ("deferred" as const) : ("included" as const),
             outcome: "pending" as const,
           };
         });
+        setDestinations(Array.from(extractedDestinations.values()));
         setTasks(parsedTasks);
         setLastSource(text);
         setSourceText("");
@@ -424,7 +451,7 @@ export default function Home() {
     const newTasks: Task[] = entries.map((label) => ({
       id: createId(),
       label: label.slice(0, 160),
-      destinationId: inferDestination(null, label),
+      destinationId: null,
       disposition: "included",
       outcome: "pending",
     }));
@@ -494,6 +521,7 @@ export default function Home() {
     setSourceText("");
     setLastSource("");
     setTasks([]);
+    setDestinations([]);
     setSourceReviewed(false);
     setCardTasks(null);
     setStep(1);
@@ -667,9 +695,8 @@ export default function Home() {
               <ReviewBoard
                 tasks={tasks}
                 lastSource={lastSource}
-                destinations={DESTINATIONS}
+                destinations={destinations}
                 sourceReviewed={sourceReviewed}
-                missingDestinationCount={missingDestinationCount}
                 canPrepare={canPrepare}
                 onBack={() => setStep(1)}
                 onAdd={addTask}
@@ -677,6 +704,7 @@ export default function Home() {
                 onRemove={removeTask}
                 onReviewed={setSourceReviewed}
                 onPrepare={prepareCard}
+                onAddDestination={addDestination}
               />
               </motion.div>
             )}

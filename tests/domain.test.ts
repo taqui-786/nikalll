@@ -87,11 +87,11 @@ test("manual splitting preserves cancellations as text without guessing intent",
   assert.deepEqual(splitRequest("   \n"), []);
 });
 
-test("manual card requires nonempty labels, destination, and renewed review", () => {
+test("manual card requires nonempty labels and renewed review while destination is optional", () => {
   assert.equal(canPrepareManualCard([task], true), true);
   assert.equal(canPrepareManualCard([task], false), false);
   assert.equal(canPrepareManualCard([{ ...task, label: " " }], true), false);
-  assert.equal(canPrepareManualCard([{ ...task, destinationId: null }], true), false);
+  assert.equal(canPrepareManualCard([{ ...task, destinationId: null }], true), true);
   assert.equal(canPrepareManualCard([{ ...task, disposition: "cancelled" }], true), false);
 });
 

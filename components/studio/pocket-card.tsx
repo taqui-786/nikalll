@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import type { Outcome, Task } from "@/lib/domain/manual-workspace";
-import { ClipboardListIcon } from "@hugeicons/core-free-icons";
+import { ClipboardListIcon, Store01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 const CYCLE: Outcome[] = ["pending", "done", "unavailable", "deferred"];
@@ -21,7 +21,7 @@ function nextOutcome(outcome: Outcome): Outcome {
 }
 
 type Stop = {
-  destination: { id: string; name: string; detail: string };
+  destination: { id: string; name: string; detail?: string };
   tasks: Task[];
 };
 
@@ -82,15 +82,20 @@ export function PocketCardView({
           <ol>
             {stops.map((stop, stopIndex) => (
               <li key={stop.destination.id} className={stopIndex === 0 ? "pt-4" : "pt-5"}>
-                <div className="flex items-baseline justify-between gap-3">
-                  <h3 className="font-heading text-sm font-bold tracking-[0.16em] text-foreground uppercase">
-                    {stop.destination.name}
-                  </h3>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <HugeiconsIcon icon={Store01Icon} size={15} className="text-primary shrink-0" />
+                    <h3 className="font-heading text-sm font-bold tracking-[0.16em] text-foreground uppercase">
+                      {stop.destination.name}
+                    </h3>
+                  </div>
                   <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
                     {String(stopIndex + 1).padStart(2, "0")}
                   </span>
                 </div>
-                <p className="mt-0.5 text-[11px] text-pretty text-muted-foreground">{stop.destination.detail}</p>
+                {stop.destination.detail ? (
+                  <p className="mt-0.5 text-[11px] text-pretty text-muted-foreground pl-6">{stop.destination.detail}</p>
+                ) : null}
                 <ul className="mt-1">
                   {stop.tasks.map((task) => {
                     const done = task.outcome === "done";

@@ -8,7 +8,7 @@ export const ManualTaskSchema = z.strictObject({
   id: z.string().min(1).max(128),
   // Blank labels are allowed while editing, but never on a prepared card.
   label: z.string().max(160),
-  destinationId: z.enum(DESTINATION_IDS).nullable(),
+  destinationId: z.string().max(80).nullable(),
   disposition: z.enum(["included", "cancelled", "deferred"]),
   outcome: z.enum(["pending", "done", "unavailable", "deferred"]),
 });
@@ -25,9 +25,7 @@ export type Outcome = Task["outcome"];
 export function canPrepareManualCard(tasks: Task[], reviewed: boolean): boolean {
   return reviewed && tasks.length > 0 && tasks.length <= 20 &&
     tasks.every((task) => task.label.trim().length > 0) &&
-    tasks.some((task) => task.disposition === "included") &&
-    tasks.every((task) => task.disposition !== "included" ||
-      (task.destinationId !== null && DESTINATION_IDS.includes(task.destinationId)));
+    tasks.some((task) => task.disposition === "included");
 }
 
 export const ManualWorkspaceSchema = z.strictObject({
