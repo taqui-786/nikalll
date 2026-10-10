@@ -13,7 +13,17 @@
   <strong>Speak once before leaving home, review in seconds, and walk out with a glanceable neighborhood checklist that works completely offline.</strong>
 </p>
 
-[Explore Live Demo](https://nikalll.onrender.com/) · [Architecture](#-architecture) · [Features](#-key-features) · [Quick Start](#-quick-start)
+<p align="center">
+  <a href="./public/demo.mp4">
+    <img src="./public/demo-thumbnail.png" alt="Nikalll Video Walkthrough Demo" width="100%" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="./public/demo.mp4"><strong>▶ Watch 1:30 min Demo Walkthrough (with Spoken Hindi, Gemma Extraction & Offline Card)</strong></a>
+</p>
+
+[Explore Live Demo](https://nikalll.onrender.com/) · [Watch Video Demo](./public/demo.mp4) · [Architecture](#-architecture) · [Features](#-key-features) · [Quick Start](#-quick-start)
 
 ---
 
@@ -45,6 +55,27 @@ flowchart LR
     C --> D["📋 Step 02: Review Board<br/>(Exclusions, Quantities & Destination Grouping)"]
     D --> E["📱 Step 03: Pocket Card<br/>(One-Hand Street Checkoff · 100% Offline)"]
 ```
+
+---
+
+## 🎬 Live Video Walkthrough
+
+Watch the complete, end-to-end mobile demonstration recorded on a live device ([nikalll.onrender.com](https://nikalll.onrender.com/)):
+
+<div align="center">
+  <a href="./public/demo.mp4">
+    <img src="./public/demo-thumbnail.png" alt="Watch Nikalll Live Demo" width="92%" style="border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,0.18);" />
+  </a>
+  <p>
+    <a href="./public/demo.mp4"><strong>▶ Click here to open and watch the demo video (public/demo.mp4 · 1:30)</strong></a>
+  </p>
+</div>
+
+### What this demo showcases:
+1. **Natural Spoken Ingestion:** Spoken Hindi/Hinglish doorstep instructions (*"sabzi mandi se 1 kg aloo aur thoda dhaniya... tamatar mat lana ghar pe already hain... kirana store se 2L doodh aur dahi, bread bilkul mat lana... chemist se BP syrup..."*) transcribed cleanly in real-time.
+2. **Deterministic Negation Isolations:** Google Gemma automatically marks items to avoid (*tamatar mat lana* -> **Skip**, *bread bilkul mat lana* -> **Skip**) without contaminating your shopping list.
+3. **Neighborhood Destination Assignment:** Errands are dynamically grouped by their actual physical storefronts (**सबज़ी मंडी**, **किराना STORE**, **CHEMIST**) with shop icons, plus an inline `+ Stop` manual override.
+4. **Glanceable Pocket Card:** Generates a lightweight, one-handed checklist ready for walking out the door—100% functional even when offline in supermarket basements.
 
 ---
 
