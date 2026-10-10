@@ -6,27 +6,12 @@ import { Shdr23 } from "@/components/ui/shdr-23";
 import type { OrbState } from "@/components/ui/orbkit-core";
 import { AudioWave } from "@/components/studio/audio-wave";
 import { BuildList } from "@/components/studio/build-list";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Delete02Icon, KeyboardIcon, Tap01Icon } from "@hugeicons/core-free-icons";
 
 const EASE = [0.32, 0.72, 0, 1] as const;
 
-function TrashIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <path d="M5 7h14" strokeLinecap="round" />
-      <path d="M9 7V5.5h6V7" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M8 7l.8 12h6.4L16 7" strokeLinejoin="round" />
-    </svg>
-  );
-}
 
-function KeyboardIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <rect x="3.5" y="6" width="17" height="12" rx="2.5" />
-      <path d="M7.5 10h.01M12 10h.01M16.5 10h.01M8 14h8" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 export function CaptureStage({
   sourceText,
@@ -277,10 +262,9 @@ export function CaptureStage({
             initial={reduce ? false : { opacity: 0, y: 8, filter: "blur(4px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.28, ease: EASE }}
-            className="mb-6 inline-flex items-center gap-2 rounded-full bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-[0_10px_30px_-18px_oklch(0.2_0.02_90/0.6)] ring-1 ring-foreground/10"
+            className="mb-6 inline-flex items-center gap-2 rounded-full bg-card px-4 py-2 text-sm font-semibold text-muted-foreground shadow-[0_10px_30px_-18px_oklch(0.2_0.02_90/0.6)]"
           >
-            <span className={`size-2 rounded-full ${recording ? "bg-primary" : "bg-foreground/25"}`} aria-hidden="true" />
-            {pill}
+            <HugeiconsIcon icon={Tap01Icon} size={16} />{pill}
             {recording && (
               <span className="font-mono text-xs text-muted-foreground tabular-nums">
                 {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}
@@ -288,7 +272,7 @@ export function CaptureStage({
             )}
           </motion.p>
 
-          <div className="flex w-full max-w-xs items-center justify-between">
+          <div className="flex w-full max-w-sm md:max-w-xs items-center justify-between">
             <button
               type="button"
               aria-label="Clear workspace"
@@ -297,7 +281,7 @@ export function CaptureStage({
               className="grid size-12 place-items-center rounded-full bg-card text-foreground ring-1 ring-foreground/10 transition-transform duration-150 ease-out active:scale-[0.96] disabled:opacity-40"
               style={{ transitionProperty: "scale, opacity" }}
             >
-              <TrashIcon />
+              <HugeiconsIcon icon={Delete02Icon} size={22} />
             </button>
             <button
               type="button"
@@ -328,7 +312,7 @@ export function CaptureStage({
               }`}
               style={{ transitionProperty: "scale, opacity, background-color, color" }}
             >
-              <KeyboardIcon />
+              <HugeiconsIcon icon={KeyboardIcon} size={22} />
             </button>
           </div>
         </div>

@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { CaptureStage } from "@/components/studio/capture-stage";
 import { PocketCardView } from "@/components/studio/pocket-card";
 import { ReviewBoard } from "@/components/studio/review-board";
@@ -557,20 +556,19 @@ export default function Home() {
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-ambient-pattern text-foreground print:h-auto print:overflow-visible">
       <header className="no-print sticky top-0 z-20 px-3 pt-3 sm:px-6">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 rounded-full bg-background/80 px-3 py-2 ring-1 ring-foreground/10 backdrop-blur-md sm:px-4">
+        <div className="mx-auto flex max-w-3xl items-center justify-between rounded-full bg-background/90 px-4 py-1.5 ring-1 ring-border/60 shadow-[0_4px_20px_-8px_oklch(0_0_0/0.08)] backdrop-blur-md">
           <button
             type="button"
             onClick={() => setStep(1)}
-            className="font-heading text-lg font-black tracking-[-0.06em] transition-opacity duration-150 hover:opacity-70"
-            style={{ transitionProperty: "opacity" }}
+            className="flex items-center gap-1 font-heading text-base font-extrabold tracking-[-0.05em] text-foreground transition-opacity hover:opacity-80"
           >
-            NIKAL<span className="text-primary">.</span>
+            NIKALLL
           </button>
-          <nav aria-label="Workflow steps" className="flex items-center gap-1">
+          <nav aria-label="Workflow steps" className="inline-flex items-center rounded-full bg-muted/70 p-0.5 ring-1 ring-border/40">
             {(
               [
                 [1, "Input"],
-                [2, "Review"],
+                [2, tasks.length > 0 ? `Review (${tasks.length})` : "Review"],
                 [3, "Card"],
               ] as const
             ).map(([index, label]) => {
@@ -582,23 +580,38 @@ export default function Home() {
                   type="button"
                   disabled={disabled}
                   onClick={() => setStep(index)}
-                  className={`h-9 rounded-full px-2.5 text-[11px] font-semibold tracking-wider uppercase transition-colors duration-150 disabled:opacity-30 sm:px-3 ${
-                    active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                  className={`relative flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all duration-150 select-none ${
+                    active
+                      ? "bg-card text-foreground shadow-xs ring-1 ring-border/50"
+                      : "text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
                   }`}
-                  style={{ transitionProperty: "background-color, color" }}
                 >
-                  {label}
+                  <span
+                    className={`size-1.5 rounded-full transition-colors ${
+                      active ? "bg-primary" : "bg-muted-foreground/30"
+                    }`}
+                  />
+                  <span>{label}</span>
                 </button>
               );
             })}
           </nav>
-          {step !== 1 ? (
-            <Button type="button" variant="ghost" size="xs" onClick={clearWorkspace} disabled={!hydrated}>
-              Clear
-            </Button>
-          ) : (
-            <span className="w-12" aria-hidden="true" />
-          )}
+          <div className="flex items-center justify-end min-w-[52px]">
+            {step !== 1 ? (
+              <button
+                type="button"
+                onClick={clearWorkspace}
+                disabled={!hydrated}
+                className="rounded-full px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Clear
+              </button>
+            ) : (
+              <span className="text-[10px] font-mono font-medium uppercase tracking-widest text-muted-foreground/50">
+                walk
+              </span>
+            )}
+          </div>
         </div>
       </header>
 
