@@ -317,8 +317,9 @@ export default function Home() {
     setIsTranscribing(true);
     setMessage("");
     try {
-      const ext = mimeType.includes("ogg") ? "ogg" : mimeType.includes("wav") ? "wav" : mimeType.includes("mp4") ? "mp4" : "webm";
-      const file = new File([blob], `voice-input.${ext}`, { type: mimeType });
+      const baseType = mimeType.split(";")[0]?.trim() || "audio/webm";
+      const ext = baseType.includes("ogg") ? "ogg" : baseType.includes("wav") ? "wav" : baseType.includes("mp4") ? "mp4" : "webm";
+      const file = new File([blob], `voice-input.${ext}`, { type: baseType });
       const formData = new FormData();
       formData.append("audio", file);
 
@@ -546,7 +547,7 @@ export default function Home() {
   const cardCompleted = cardIncluded.filter((task) => task.outcome === "done").length;
 
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-ambient-pattern text-foreground">
+    <div className="flex h-dvh flex-col overflow-hidden bg-ambient-pattern text-foreground print:h-auto print:overflow-visible">
       <header className="no-print sticky top-0 z-20 px-3 pt-3 sm:px-6">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 rounded-full bg-background/80 px-3 py-2 ring-1 ring-foreground/10 backdrop-blur-md sm:px-4">
           <button
@@ -583,14 +584,18 @@ export default function Home() {
               );
             })}
           </nav>
-          <Button type="button" variant="ghost" size="xs" onClick={clearWorkspace} disabled={!hydrated}>
-            Clear
-          </Button>
+          {step !== 1 ? (
+            <Button type="button" variant="ghost" size="xs" onClick={clearWorkspace} disabled={!hydrated}>
+              Clear
+            </Button>
+          ) : (
+            <span className="w-12" aria-hidden="true" />
+          )}
         </div>
       </header>
 
-      <main className="flex flex-1 flex-col justify-center px-4 py-8 sm:px-6">
-        <div className="mx-auto w-full max-w-3xl">
+      <main className={`flex min-h-0 flex-1 flex-col px-4 sm:px-6 print:overflow-visible ${step === 1 ? "overflow-hidden" : "overflow-y-auto py-6 sm:py-10"}`}>
+        <div className={`mx-auto w-full max-w-3xl ${step === 1 ? "flex h-full min-h-0 flex-col" : ""}`}>
           {message && (
             <p role="status" className="mb-4 text-center text-xs text-pretty text-muted-foreground">
               {message}
@@ -600,6 +605,7 @@ export default function Home() {
             {step === 1 && (
               <motion.div
                 key="input"
+                className="flex h-full min-h-0 flex-col"
                 initial={{ opacity: 0, y: 16, filter: "blur(6px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 exit={{ opacity: 0, y: -12, filter: "blur(4px)" }}
@@ -625,6 +631,7 @@ export default function Home() {
                   onExtract={() => void extractWithAI()}
                   onSample={() => onSourceText(SAMPLE_SOURCE)}
                   onLevel={onLevel}
+                  onClear={clearWorkspace}
                 />
               </motion.div>
             )}
@@ -682,7 +689,7 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="no-print px-4 py-4 text-center text-[11px] text-muted-foreground">
+      <footer className={`no-print px-4 py-4 text-center text-[11px] text-muted-foreground ${step === 1 ? "hidden" : ""}`}>
         <span className="font-mono text-[10px] tabular-nums">{storageStatus}</span>
       </footer>
     </div>

@@ -12,10 +12,14 @@ type Destination = {
 };
 
 const DISPOSITIONS: { id: Disposition; label: string }[] = [
-  { id: "included", label: "Included" },
-  { id: "cancelled", label: "Cancelled" },
+  { id: "included", label: "Keep" },
+  { id: "cancelled", label: "Skip" },
   { id: "deferred", label: "Later" },
 ];
+
+function shortStop(name: string) {
+  return name.replace(/^Local\s+/i, "").replace(/\s+(Office|Corner)$/i, "");
+}
 
 export function ReviewBoard({
   tasks,
@@ -61,10 +65,10 @@ export function ReviewBoard({
       )}
 
       <motion.div
-        className="mt-6 space-y-3"
+        className="mt-4 space-y-2"
         initial="hidden"
         animate="show"
-        variants={{ show: { transition: { staggerChildren: reduce ? 0 : 0.08 } } }}
+        variants={{ show: { transition: { staggerChildren: reduce ? 0 : 0.06 } } }}
       >
         {tasks.length === 0 ? (
           <p className="py-16 text-center text-sm text-muted-foreground">
@@ -84,80 +88,80 @@ export function ReviewBoard({
                   show: { opacity: 1, y: 0, filter: "blur(0px)" },
                 }}
                 transition={{ duration: 0.45, ease: EASE }}
-                className="rounded-[1.4rem] bg-foreground/[0.04] p-1.5 ring-1 ring-foreground/10"
+                className="overflow-hidden rounded-2xl bg-card shadow-[0_12px_28px_-22px_oklch(0.2_0.02_90/0.55)] ring-1 ring-foreground/10"
               >
-                <div className="rounded-[1.05rem] bg-card px-3 py-3 shadow-[inset_0_1px_0_oklch(1_0_0/0.4)] sm:px-4">
-                  <div className="flex items-start gap-2">
-                    <span className="pt-2 font-mono text-[11px] text-muted-foreground tabular-nums">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <input
-                      aria-label={`Edit errand ${index + 1}`}
-                      value={task.label}
-                      maxLength={160}
-                      onChange={(event) => onUpdate(task.id, { label: event.target.value })}
-                      className={`min-w-0 flex-1 bg-transparent py-1.5 text-base font-semibold outline-none ${
-                        task.disposition === "cancelled" ? "text-muted-foreground line-through" : "text-foreground"
-                      }`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => onRemove(task.id)}
-                      aria-label={`Remove errand ${index + 1}`}
-                      className="grid size-11 shrink-0 place-items-center text-lg text-muted-foreground transition-transform duration-150 ease-out hover:text-foreground active:scale-[0.96]"
-                      style={{ transitionProperty: "scale, color" }}
-                    >
-                      ×
-                    </button>
-                  </div>
-
-                  <div className="mt-2 flex flex-wrap gap-1.5 pl-7">
-                    {DISPOSITIONS.map((item) => {
-                      const selected = task.disposition === item.id;
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          aria-pressed={selected}
-                          onClick={() => onUpdate(task.id, { disposition: item.id })}
-                          className={`h-10 rounded-full px-3 text-[11px] font-semibold tracking-wider uppercase transition-colors duration-150 ${
-                            selected ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:text-foreground"
-                          }`}
-                          style={{ transitionProperty: "background-color, color" }}
-                        >
-                          {item.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {task.disposition === "included" ? (
-                    <div className="mt-2 flex flex-wrap gap-1.5 pl-7">
-                      {destinations.map((destination) => {
-                        const selected = task.destinationId === destination.id;
-                        return (
-                          <button
-                            key={destination.id}
-                            type="button"
-                            aria-pressed={selected}
-                            onClick={() => onUpdate(task.id, { destinationId: destination.id })}
-                            className={`h-10 rounded-full px-3 text-xs font-semibold transition-colors duration-150 ${
-                              selected
-                                ? "bg-primary text-primary-foreground"
-                                : needsStop
-                                  ? "text-foreground ring-1 ring-primary/70"
-                                  : "text-muted-foreground ring-1 ring-border hover:text-foreground"
-                            }`}
-                            style={{ transitionProperty: "background-color, color" }}
-                          >
-                            {destination.name}
-                          </button>
-                        );
-                      })}
+                <div className="flex">
+                  <div className={`w-1 shrink-0 ${needsStop ? "bg-primary" : "bg-foreground/10"}`} aria-hidden="true" />
+                  <div className="min-w-0 flex-1 px-3 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <input
+                        aria-label={`Edit errand ${index + 1}`}
+                        value={task.label}
+                        maxLength={160}
+                        onChange={(event) => onUpdate(task.id, { label: event.target.value })}
+                        className={`min-w-0 flex-1 bg-transparent py-1 text-sm font-semibold outline-none ${
+                          task.disposition === "cancelled" ? "text-muted-foreground line-through" : "text-foreground"
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => onRemove(task.id)}
+                        aria-label={`Remove errand ${index + 1}`}
+                        className="relative grid size-8 shrink-0 place-items-center text-muted-foreground transition-transform duration-150 ease-out before:absolute before:-inset-1.5 hover:text-foreground active:scale-[0.96]"
+                        style={{ transitionProperty: "scale, color" }}
+                      >
+                        ×
+                      </button>
                     </div>
-                  ) : (
-                    <p className="mt-2 pl-7 text-xs text-muted-foreground">No stop</p>
-                  )}
+
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5 pl-6">
+                      <div className="inline-flex h-9 items-center overflow-hidden rounded-full bg-muted">
+                        {DISPOSITIONS.map((item) => {
+                          const selected = task.disposition === item.id;
+                          return (
+                            <button
+                              key={item.id}
+                              type="button"
+                              aria-pressed={selected}
+                              onClick={() => onUpdate(task.id, { disposition: item.id })}
+                              className={`px-2.5 text-[10px] font-semibold tracking-wider uppercase transition-colors duration-150 ${
+                                selected ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                              }`}
+                              style={{ transitionProperty: "background-color, color" }}
+                            >
+                              {item.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {task.disposition === "included" && (
+                        <div className={`inline-flex h-9 items-center overflow-hidden rounded-full ring-1 ${needsStop ? "ring-primary" : "ring-border"}`}>
+                          {destinations.map((destination) => {
+                            const selected = task.destinationId === destination.id;
+                            return (
+                              <button
+                                key={destination.id}
+                                type="button"
+                                aria-pressed={selected}
+                                aria-label={destination.name}
+                                onClick={() => onUpdate(task.id, { destinationId: destination.id })}
+                                className={`px-2.5 text-[10px] font-semibold tracking-wide transition-colors duration-150 ${
+                                  selected ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                                }`}
+                                style={{ transitionProperty: "background-color, color" }}
+                              >
+                                {shortStop(destination.name)}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </motion.article>
             );

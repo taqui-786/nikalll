@@ -36,10 +36,12 @@ export function AudioWave({
   analyser,
   active,
   onLevel,
+  className = "",
 }: {
   analyser: AnalyserNode | null;
   active: boolean;
   onLevel: (level: number) => void;
+  className?: string;
 }) {
   const pathRef = useRef<SVGPathElement>(null);
   const onLevelRef = useRef(onLevel);
@@ -82,7 +84,7 @@ export function AudioWave({
         level = Math.min(1, level / BINS * 2.4);
       } else {
         for (let index = 0; index < BINS; index += 1) {
-          const breath = 0.045 + Math.sin(phase + index * 0.38) * 0.02;
+          const breath = 0.16 + Math.sin(phase + index * 0.45) * 0.1 + Math.sin(phase * 0.6 + index * 0.2) * 0.04;
           samples[index] = samples[index] * 0.82 + breath * 0.18;
         }
         level = 0;
@@ -104,9 +106,9 @@ export function AudioWave({
     <svg
       viewBox="0 0 320 72"
       aria-hidden="true"
-      className={`h-16 w-[min(100%,20rem)] overflow-visible transition-opacity duration-300 ${
-        active ? "text-primary opacity-100" : "text-foreground opacity-40"
-      }`}
+      className={`h-24 w-full max-w-lg overflow-visible transition-opacity duration-300 ${
+        active ? "text-primary opacity-100" : "text-foreground opacity-70"
+      } ${className}`}
       style={{ transitionProperty: "opacity" }}
     >
       <path
